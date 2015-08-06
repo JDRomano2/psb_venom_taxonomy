@@ -1,0 +1,122 @@
+silent =console;
+macro=;
+lquote [ ;
+
+if ( ntax < 3 )
+  errmsg &10&10You must read the data set (with &34proc filename.,&34) before running a quickie! ; end
+end
+
+log aquickie.out;
+
+watch=;
+
+sect:slack 100;
+
+coll tbr ;
+
+drift : fitd 2 rfitd 0.1 ;
+
+var :
+  i j
+  plotapo bootit
+  runquickie dobremer
+  medium big verybig
+;
+
+set medium 200 ;
+set big 500 ;
+set verybig 1500 ;
+set plotapo 0 ;
+set runquickie 0 ;
+set dobremer 1 ;
+set bootit 1 ;
+
+cls ;
+resettime ;
+if ( 'dobremer' ) tsave * tmp.tre; end
+if ( ( ntax > 'medium' ) && 'runquickie' )
+  set 0 ntax / 70 ;
+  set 1 'i' / 2 ;
+  if ( 'i' < 2 ) set i 2 ; end
+  if ( 'j' < 3 ) set j 3 ; end
+  if ( 'j' > 20 ) set j 20 ; end
+  if ( 'i' > 30 ) set i 30 ; end
+  sec: xss'/.0i'-'/.0j'+3-1 gocomb 60 fuse 4 drift 5 combstart 5 ;
+  if ( ntax < 'big' )
+       if ( 'dobremer' )
+           qnelsen [ xmu = rep 3 xss ; save ; ] ;
+       else
+           qnelsen [ xmu = rep 3 xss ; ] ;
+           end
+
+  else
+   if ( ntax < 'verybig' )
+       if ( 'dobremer' )
+          qnelsen [ mu1=ho1 ; sec=xss ; drift=iter5; save ; ] ;
+       else
+          qnelsen [ mu1=ho1 ; sec=xss ; drift=iter5; ] ;
+          end
+   else
+       if ( 'dobremer' )
+           qnelsen [ mu1=ho1 ; save ; ] ;
+       else
+           qnelsen [ mu1=ho1 ; ] ;
+           end
+
+    end
+  end
+else
+	
+  report +/1 ;
+       cls ;
+  hold 1000 ;
+  xmu = hit 20 drift 10 ;
+  if ( 'dobremer' ) save ; end
+  nelsen * ;
+  if ( 'plotapo' )
+    set i ntrees ;
+    cls ;
+    coll rule 3 ;
+    set i -- ;
+    apo [ 0.'i' ;
+    coll tbr ;
+  end
+  tchoose { strict } ;
+end
+
+if ( 'dobremer' )
+  tsave / ;
+  sub 10 ;
+  ttag= ;
+  p tmp.tre ;
+  bsupp !!+0 1. ;
+  sub 10x0.90 ;
+  bsupp [!!+0 1.;
+  sub 0 ;
+  keep 1 ;
+  ttag - ;
+end
+
+if ( 'bootit' )
+  ttag = ;
+  cls ;
+  coll tbr ;
+  resample [ mu1=ho1; ] rep 100 freq gc from 0 ;
+  keep 1 ;
+end
+
+export - aquickie.tre ;
+
+log / ;
+
+set i time ;
+
+blength *0;
+ttag=;
+ttag &jdrquickie.svg;
+tsave *aquickie.tre;
+
+save 0;
+tsave/;
+
+proc/;
